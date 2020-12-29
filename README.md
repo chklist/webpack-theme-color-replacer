@@ -1,5 +1,7 @@
 This plugin can extract theme color styles from all the outputed css files (such as element-ui theme colors), and make a 'theme-colors.css' file which only contains color styles. At runtime in your web page, the client part will help you to download this css file, and then replace the colors into new customized colors dynamicly.
 
+2020.12.29 Modify https://www.npmjs.com/package/webpack-theme-color-replacer to support webpack5.Thank the original author for his selfless dedication
+
 This is a sample:
 https://hzsrc-vue-webpack4-elementui.netlify.com/themeColor.html
 
@@ -7,13 +9,13 @@ Implementation (Chinese):
 https://segmentfault.com/a/1190000016061608
 
 # Install
-npm i -D webpack-theme-color-replacer
+npm i -D webpack5-theme-color-replacer
 
 # Cofig for webpack
 
 ````js
 
-const ThemeColorReplacer = require('webpack-theme-color-replacer')
+const ThemeColorReplacer = require('webpack5-theme-color-replacer')
 
 module.exports = {
     // ..... other config
@@ -65,7 +67,7 @@ See this sample: https://github.com/hzsrc/webpack-theme-color-replacer/blob/mast
 Like this:
 
 ````js
-import client from 'webpack-theme-color-replacer/client'
+import client from 'webpack5-theme-color-replacer/client'
 
 // change theme colors at runtime.
 export function changeColor() {
