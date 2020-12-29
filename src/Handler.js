@@ -29,11 +29,25 @@ module.exports = class Handler {
         // 记录动态的文件名，到每个入口
         this.addToEntryJs(outputName, compilation, output)
 
+        // function getFileName(fileName, src) {
+        //     var contentHash = crypto.createHash('md4')
+        //         .update(src)
+        //         .digest('hex')
+        //     return compilation.getPath(fileName, { contentHash })
+        // }
+
         function getFileName(fileName, src) {
-            var contentHash = crypto.createHash('md4')
-                .update(src)
-                .digest('hex')
-            return compilation.getPath(fileName, { contentHash })
+            var contentHash = crypto.createHash('md4').update(src).digest('hex')
+            var p1 = fileName.indexOf('contenthash:')
+            if (p1 > -1) {
+                p1 += 12
+                var p2 = fileName.indexOf(']', p1)
+                if (p2 > p1) {
+                    var len = fileName.substr(p1, p2 - p1)
+                    fileName = fileName.replace('[contenthash:' + len + ']', contentHash.slice(0, len))
+                }
+            }
+            return fileName;
         }
     }
 
@@ -52,7 +66,7 @@ module.exports = class Handler {
         Object.keys(entrypoints).forEach(entryName => {
             var entryAssets = entrypoints[entryName].assets
             for (var i = 0, l = entryAssets.length; i < l; i++) {
-                var assetName = entryAssets[i]
+                var assetName = entryAssets[i].name
                 if (assetName.slice(-3) === '.js' && assetName.indexOf('manifest.') === -1) { //
                     var assetSource = compilation.assets[assetName]
                     if (assetSource && !assetSource._isThemeJsInjected) {
