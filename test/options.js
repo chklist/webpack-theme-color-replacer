@@ -1,4 +1,5 @@
-var getElementUISeries = require('../forElementUI/getElementUISeries')
+const getElementUISeries = require('../forElementUI/getElementUISeries')
+const path = require('path')
 
 module.exports = {
     dev: {
@@ -42,7 +43,7 @@ module.exports = {
                     return selector;
             }
         },
-        externalCssFiles: require('path').join(__dirname, './external.css'),
+        externalCssFiles: path.join(__dirname, './external.css'),
         newColors: [...getElementUISeries('#bd3be7'), '#333', '#333334'],
     },
 }

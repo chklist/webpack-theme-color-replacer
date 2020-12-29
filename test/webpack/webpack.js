@@ -31,11 +31,10 @@ var config = {
             name: 'manifest'
         },
         minimize: option.isJsUgly,
-        noEmitOnErrors: true,
+        emitOnErrors: false,
         splitChunks: false
     }
 }
-
 
 require('rimraf')(config.output.path, e => !e && doWebpack())
 
