@@ -1,30 +1,29 @@
 'use strict'
-var Handler = require('./Handler')
+const { Compilation } = require('webpack')
+const Handler = require('./Handler')
+
+const pluginName = 'ThemeColorReplacer'
 
 class ThemeColorReplacer {
   constructor(options) {
     this.handler = new Handler(options)
   }
 
-  // 绑定emit(输出 asset 到 output 目录之前执行)
-  getBinder(compiler, event) {
-    return compiler.hooks
-      ? compiler.hooks[event].tapAsync.bind(compiler.hooks[event], 'ThemeColorReplacer')
-      : compiler.plugin.bind(compiler, event)
-  }
-
   apply(compiler) {
-    // this.getBinder(compiler, 'compilation')((compilation) => {
-    //   this.getBinder(compilation, 'html-webpack-plugin-before-html-processing')((htmlPluginData, callback) => {
-    //     debugger
-    //   })
-    // });
-    this.getBinder(
-      compiler,
-      'emit'
-    )((compilation, callback) => {
-      this.handler.handle(compilation)
-      callback()
+    // compiler.hooks.emit.tapAsync(pluginName, (compilation, callback) => {
+    //   this.handler.handle(compilation)
+    //   callback()
+    // })
+    compiler.hooks.compilation.tap(pluginName, (compilation) => {
+      compilation.hooks.processAssets.tap(
+        {
+          name: pluginName,
+          stage: Compilation.PROCESS_ASSETS_STAGE_ADDITIONS, // see below for more stages
+        },
+        (assets) => {
+          this.handler.handle(assets)
+        }
+      )
     })
   }
 }

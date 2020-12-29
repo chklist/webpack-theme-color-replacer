@@ -3,6 +3,7 @@ const crypto = require('crypto')
 const AssetsExtractor = require('./AssetsExtractor')
 const { RawSource, ConcatSource } = require('webpack-sources')
 const LineReg = /\n/g
+const REGEXP_CONTENTHASH = /\[contenthash(?::(\d+))?\]/i
 
 module.exports = class Handler {
   constructor(options) {
@@ -18,66 +19,46 @@ module.exports = class Handler {
     this.assetsExtractor = new AssetsExtractor(this.options)
   }
 
-  handle(compilation) {
-    var output = this.assetsExtractor.extractAssets(compilation.getAssets())
+  handle(assets) {
+    var output = this.assetsExtractor.extractAssets(assets)
     console.log('Extracted theme color css content length: ' + output.length)
 
     //Add to assets for output
-    var outputName = getFileName(this.options.fileName, output)
-    compilation.emitAsset(outputName, new RawSource(output))
+    var outputName = this.getFileName(this.options.fileName, output)
+    assets[outputName] = new RawSource(output)
 
     // 记录动态的文件名，到每个入口
-    this.addToEntryJs(outputName, compilation, output)
+    this.addToEntryJs(outputName, assets, output)
+  }
 
-    // function getFileName(fileName, src) {
-    //     var contentHash = crypto.createHash('md4')
-    //         .update(src)
-    //         .digest('hex')
-    //     return compilation.getPath(fileName, { contentHash })
-    // }
+  getFileName(fileName, src) {
 
-    function getFileName(fileName, src) {
-      var contentHash = crypto.createHash('md4').update(src).digest('hex')
-      var p1 = fileName.indexOf('contenthash:')
-      if (p1 > -1) {
-        p1 += 12
-        var p2 = fileName.indexOf(']', p1)
-        if (p2 > p1) {
-          var len = fileName.substr(p1, p2 - p1)
-          fileName = fileName.replace('[contenthash:' + len + ']', contentHash.slice(0, len))
-        }
+    const regExp = new RegExp(REGEXP_CONTENTHASH);
+    if (regExp.test(fileName)) {
+      const len = RegExp.$1
+      const contentHash = crypto.createHash('md4').update(src).digest('hex')
+      if (len) {
+        fileName = fileName.replace(REGEXP_CONTENTHASH, contentHash.slice(0, len))
+      } else {
+        fileName = fileName.replace(REGEXP_CONTENTHASH, contentHash)
       }
-      return fileName
     }
+    return fileName
   }
 
   // 自动注入js代码，设置css文件名
-  addToEntryJs(outputName, compilation, cssCode) {
-    var onlyEntrypoints = {
-      entrypoints: true,
-      errorDetails: false,
-      modules: false,
-      assets: false,
-      children: false,
-      chunks: false,
-      chunkGroups: false,
-    }
-    var entrypoints = compilation.getStats().toJson(onlyEntrypoints).entrypoints
-    Object.keys(entrypoints).forEach((entryName) => {
-      var entryAssets = entrypoints[entryName].assets
-      for (var i = 0, l = entryAssets.length; i < l; i++) {
-        var assetName = entryAssets[i].name
-        if (assetName.slice(-3) === '.js' && assetName.indexOf('manifest.') === -1) {
-          var assetSource = compilation.getAsset(assetName).source
-          if (assetSource && !assetSource._isThemeJsInjected) {
-            var cSrc = this.getEntryJs(outputName, assetSource, cssCode)
-            cSrc._isThemeJsInjected = true
-            compilation.updateAsset(assetName, cSrc)
-            break
-          }
+  addToEntryJs(outputName, assets, cssCode) {
+    for (const assetName of Object.keys(assets)) {
+      if (assetName.slice(-3) === '.js' && assetName.indexOf('manifest.') === -1) {
+        var assetSource = assets[assetName]
+        if (assetSource && !assetSource._isThemeJsInjected) {
+          var cSrc = this.getEntryJs(outputName, assetSource, cssCode)
+          cSrc._isThemeJsInjected = true
+          assets[assetName] = cSrc
+          break
         }
       }
-    })
+    }
   }
 
   getEntryJs(outputName, assetSource, cssCode) {

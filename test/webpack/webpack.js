@@ -60,6 +60,7 @@ function doWebpack() {
 function testReplaced() {
     var dir = 'test/webpack/dist/css'
     var cssFile = fs.readdirSync(dir)[0]
+    console.log(cssFile)
     cssFile = path.resolve(dir + '/' + cssFile)
     var cssText = fs.readFileSync(cssFile, 'utf-8')
     var replacedCss = client.changer.replaceCssText(cssText, option.matchColors, option.newColors)
