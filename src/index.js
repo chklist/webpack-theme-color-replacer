@@ -10,10 +10,6 @@ class ThemeColorReplacer {
   }
 
   apply(compiler) {
-    // compiler.hooks.emit.tapAsync(pluginName, (compilation, callback) => {
-    //   this.handler.handle(compilation)
-    //   callback()
-    // })
     compiler.hooks.compilation.tap(pluginName, (compilation) => {
       compilation.hooks.processAssets.tap(
         {

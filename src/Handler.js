@@ -21,7 +21,7 @@ module.exports = class Handler {
 
   handle(assets) {
     var output = this.assetsExtractor.extractAssets(assets)
-    if ((output.length === 0)) return
+    if (output.length === 0) return
     console.log('Extracted theme color css content length: ' + output.length)
 
     //Add to assets for output
@@ -35,13 +35,12 @@ module.exports = class Handler {
   getFileName(fileName, src) {
     const regExp = new RegExp(REGEXP_CONTENTHASH)
     if (regExp.test(fileName)) {
-      const len = RegExp.$1
+      const hashLength = RegExp.$1
       const contentHash = crypto.createHash('md4').update(src).digest('hex')
-      if (len) {
-        fileName = fileName.replace(REGEXP_CONTENTHASH, contentHash.slice(0, len))
-      } else {
-        fileName = fileName.replace(REGEXP_CONTENTHASH, contentHash)
-      }
+
+      fileName = hashLength
+        ? fileName.replace(REGEXP_CONTENTHASH, contentHash.slice(0, hashLength))
+        : fileName.replace(REGEXP_CONTENTHASH, contentHash)
     }
     return fileName
   }
